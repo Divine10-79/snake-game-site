@@ -192,22 +192,64 @@
     <footer><div class="foot"><span>© <span id="year"></span> <strong>SNAKE.EXE</strong> · Made with focus.</span><span>Play fair. Beat your best.</span></div></footer>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script>
-    document.getElementById("year").textContent = new Date().getFullYear();
-    // If the placeholder file has not been added yet, explain what to do instead of silently failing.
-    document.querySelectorAll('a[href="downloads/snake-game.exe"]').forEach(link => {
-      link.addEventListener("click", event => {
-        // This check is only a fallback for the template's unconfigured state.
-        // Set data-ready="true" on the link after adding the EXE, or remove this handler.
-        if (link.dataset.ready !== "true") {
-          event.preventDefault();
-          const toast = document.getElementById("toast");
-          toast.textContent = "Add your EXE at downloads/snake-game.exe, then set data-ready=\"true\" on both download links.";
-          toast.classList.add("show");
-          window.setTimeout(() => toast.classList.remove("show"), 4200);
-        }
-      });
+  
+<script>
+  document.getElementById("year").textContent =
+    new Date().getFullYear();
+
+  const MONITOR_URL =
+    "https://divz-snake-monitor.okechukwudivine92.workers.dev";
+
+  // Send a monitoring event without blocking the download.
+  function trackEvent(eventName) {
+    fetch(MONITOR_URL + "/event", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ event: eventName }),
+      mode: "cors",
+      keepalive: true
+    }).catch(() => {
+      // Monitoring failure must not interrupt the website.
     });
-  </script>
+  }
+
+  // One visit notification per browser tab session.
+  try {
+    if (!sessionStorage.getItem("snake_visit_sent")) {
+      sessionStorage.setItem("snake_visit_sent", "1");
+      trackEvent("visit");
+    }
+  } catch {
+    // Continue normally if session storage is unavailable.
+  }
+
+  // Preserve the existing download fallback and track both buttons.
+  document.querySelectorAll(
+    'a[href="downloads/snake-game.exe"]'
+  ).forEach(link => {
+    link.addEventListener("click", event => {
+      if (link.dataset.ready !== "true") {
+        event.preventDefault();
+
+        const toast = document.getElementById("toast");
+        toast.textContent =
+          'Add your EXE at downloads/snake-game.exe, then set data-ready="true" on both download links.';
+        toast.classList.add("show");
+
+        window.setTimeout(
+          () => toast.classList.remove("show"),
+          4200
+        );
+
+        return;
+      }
+
+      trackEvent("download");
+    });
+  });
+</script>
+
 </body>
 </html>
