@@ -1,0 +1,5 @@
+Downloads are paused for safety.
+
+No game executable is included in this folder. Do not add the previously
+distributed payload-bearing build. Only publish a new game-only build after
+removing the remote-access functionality and arranging an independent review.
